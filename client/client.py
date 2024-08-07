@@ -1,7 +1,6 @@
-import json
 import requests
 from typing import List, Dict
-from mbn import Schema, BufferStore
+from mbn import BufferStore
 
 
 class RetrieveParams:

@@ -5,13 +5,10 @@ from dotenv import load_dotenv
 from client import DatabaseClient
 import json
 import struct
-
 from client.client import RetrieveParams
-from mbn import Schema, BufferStore
 
-
+# Load url
 load_dotenv()
-
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -19,6 +16,7 @@ if DATABASE_URL is None:
     raise ValueError("DATABASE_URL environment variable is not set")
 
 
+# Helper methods
 def create_instruments(ticker: str, name: str) -> int:
     url = f"{DATABASE_URL}/market_data/instruments/create"
     data = {"ticker": ticker, "name": name}
@@ -41,13 +39,12 @@ def create_records(binary_data: list):
     _ = requests.post(url, json=binary_data)
 
 
-class TestBarDataMethods(unittest.TestCase):
+class TestClientMethods(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        # Database clients
         cls.client = DatabaseClient(str(DATABASE_URL))
 
-    @unittest.skip("")
+    # @unittest.skip("")
     def test_list_instruments(self):
         # Setup
         id = create_instruments("AAPL8", "Apple Inc.")
@@ -61,7 +58,7 @@ class TestBarDataMethods(unittest.TestCase):
         # Cleanup
         delete_instruments(id)
 
-    @unittest.skip("")
+    # @unittest.skip("")
     def test_create_backtest(self):
         # Setup
         with open("tests/data/test_data.backtest.json", "r") as f:
@@ -77,7 +74,7 @@ class TestBarDataMethods(unittest.TestCase):
         # Cleanup
         self.client.delete_backtest(id)
 
-    @unittest.skip("")
+    # @unittest.skip("")
     def test_get_backtest(self):
         # Setup
         with open("tests/data/test_data.backtest.json", "r") as f:
@@ -109,7 +106,7 @@ class TestBarDataMethods(unittest.TestCase):
         #!!!! WILL FAIL IF NOT EXACTLY ALIGNED !!!!!
         binary = data["data"]
         binary[4:8] = new_id_bytes
-        binary[60:64] = new_id_bytes
+        # binary[60:64] = new_id_bytes
 
         # Create records
         create_records(binary)
@@ -117,16 +114,17 @@ class TestBarDataMethods(unittest.TestCase):
         # Test
         params = RetrieveParams(
             ["AAPL"],
-            1703209103644092563,
+            1,
             1705209903644092564,
-            "ohlcv-1s",
-            # Schema.MBP1,
+            "mbp-1",
         )
         response = self.client.get_records(params)
 
         # Validate
         records = response.decode_to_array()
         self.assertTrue(len(records) > 0)
+
+        # print(f"Response test {records[0]}")
 
         # Cleanup
         delete_instruments(id)
