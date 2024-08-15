@@ -1,11 +1,13 @@
 import unittest
+import pandas as pd
 import os
 import requests
 from dotenv import load_dotenv
-from client import DatabaseClient
+from midasClient import DatabaseClient
 import json
 import struct
-from client.client import RetrieveParams
+from midasClient.client import RetrieveParams
+from mbn import BufferStore
 
 # Load url
 load_dotenv()
@@ -114,8 +116,8 @@ class TestClientMethods(unittest.TestCase):
         # Test
         params = RetrieveParams(
             ["AAPL"],
-            1,
-            1705209903644092564,
+            "2017-01-01",
+            "2024-12-13",
             "mbp-1",
         )
         response = self.client.get_records(params)
@@ -124,10 +126,42 @@ class TestClientMethods(unittest.TestCase):
         records = response.decode_to_array()
         self.assertTrue(len(records) > 0)
 
-        # print(f"Response test {records[0]}")
-
         # Cleanup
         delete_instruments(id)
+
+    def test_read_file(self):
+        file_path = "tests/data/ohlcv_1m.bin"
+        data = BufferStore.from_file(file_path)
+        metadata = data.metadata
+        print(metadata)
+
+        df = data.decode_to_df()
+        print(df)
+
+        # flat_data = flatten_records(msg)
+        # df = pd.DataFrame(flat_data)
+
+    # def test_get_data(self):
+    #     params = RetrieveParams(
+    #         ["HE.n.0", "ZC.,"],
+    #         "2017-01-01",
+    #         "2024-12-13",
+    #         "mbp-1",
+    #     )
+
+    #     response = self.client.get_records(params)
+
+    #     # Validate
+    #     # records = response.decode_to_array()
+    #     # print(records)
+
+    #     record = response.replay()
+    #     while record is not None:
+    #         print(f"Record {record}")
+    #     # if record is None:
+    #     # return False
+    #     # print(record)
+    #     # return True
 
 
 if __name__ == "__main__":

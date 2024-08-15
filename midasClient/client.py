@@ -1,13 +1,14 @@
 import requests
 from typing import List, Dict
 from mbn import BufferStore
+from .utils import iso_to_unix
 
 
 class RetrieveParams:
-    def __init__(self, symbols: List[str], start_ts: int, end_ts: int, schema: str):
+    def __init__(self, symbols: List[str], start_ts: str, end_ts: str, schema: str):
         self.symbols: List[str] = symbols
-        self.start_ts = start_ts
-        self.end_ts = end_ts
+        self.start_ts = iso_to_unix(start_ts)
+        self.end_ts = iso_to_unix(end_ts)
         self.schema = schema
 
     def to_dict(self):
