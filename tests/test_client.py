@@ -1,5 +1,4 @@
 import unittest
-import pandas as pd
 import os
 import requests
 from dotenv import load_dotenv
@@ -116,8 +115,8 @@ class TestClientMethods(unittest.TestCase):
         # Test
         params = RetrieveParams(
             ["AAPL"],
-            "2017-01-01",
-            "2024-12-13",
+            "2023-11-01",
+            "2023-11-30",
             "mbp-1",
         )
         response = self.client.get_records(params)
@@ -131,37 +130,12 @@ class TestClientMethods(unittest.TestCase):
 
     def test_read_file(self):
         file_path = "tests/data/ohlcv_1m.bin"
+        # Test
         data = BufferStore.from_file(file_path)
-        metadata = data.metadata
-        print(metadata)
+        df = data.decode_to_df(pretty_ts=True, pretty_px=False)
 
-        df = data.decode_to_df()
-        print(df)
-
-        # flat_data = flatten_records(msg)
-        # df = pd.DataFrame(flat_data)
-
-    # def test_get_data(self):
-    #     params = RetrieveParams(
-    #         ["HE.n.0", "ZC.,"],
-    #         "2017-01-01",
-    #         "2024-12-13",
-    #         "mbp-1",
-    #     )
-
-    #     response = self.client.get_records(params)
-
-    #     # Validate
-    #     # records = response.decode_to_array()
-    #     # print(records)
-
-    #     record = response.replay()
-    #     while record is not None:
-    #         print(f"Record {record}")
-    #     # if record is None:
-    #     # return False
-    #     # print(record)
-    #     # return True
+        # Validate
+        self.assertTrue(len(df) > 0)
 
 
 if __name__ == "__main__":
