@@ -53,9 +53,9 @@ class DatabaseClient:
         return response.json()
 
     def get_backtest(self, id: int) -> Dict:
-        url = f"{self.api_url}/trading/backtest/get"
+        url = f"{self.api_url}/trading/backtest/get?id={id}"
 
-        response = requests.get(url, json=id)
+        response = requests.get(url)  # json=id)
 
         if response.status_code != 200:
             raise ValueError(f"Instrument list retrieval failed: {response.text}")
@@ -65,10 +65,17 @@ class DatabaseClient:
         url = f"{self.api_url}/market_data/mbp/get"
 
         data = params.to_dict()
-        response = requests.get(url, json=data)
+        response = requests.get(url, json=data, stream=True)
 
         if response.status_code != 200:
             raise ValueError(f"Instrument list retrieval failed: {response.text}")
 
-        bin = bytes(response.json()["data"])  # extract binary buffer
-        return BufferStore(bin)
+        # Initialize an empty byte array to collect the streamed data
+        bin_data = bytearray()
+
+        # Read the streamed content in chunks
+        for chunk in response.iter_content(chunk_size=None):
+            if chunk:  # filter out keep-alive chunks
+                bin_data.extend(chunk)
+
+        return BufferStore(bytes(bin_data))
