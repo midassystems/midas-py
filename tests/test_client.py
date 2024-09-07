@@ -116,7 +116,7 @@ class TestClientMethods(unittest.TestCase):
         params = RetrieveParams(
             ["AAPL"],
             "2023-11-01",
-            "2023-11-30",
+            "2024-11-30",
             "mbp-1",
         )
         response = self.client.get_records(params)
