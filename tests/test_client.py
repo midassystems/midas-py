@@ -5,21 +5,21 @@ from dotenv import load_dotenv
 from midasClient import DatabaseClient
 import json
 import struct
-from midasClient.client import RetrieveParams
+from midasClient.historical import RetrieveParams
 from mbn import BufferStore
 
 # Load url
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("HISTORICAL_URL")
 
 if DATABASE_URL is None:
-    raise ValueError("DATABASE_URL environment variable is not set")
+    raise ValueError("HISTORICAL_URL environment variable is not set")
 
 
 # Helper methods
 def create_instruments(ticker: str, name: str) -> int:
-    url = f"{DATABASE_URL}/market_data/instruments/create"
+    url = f"{DATABASE_URL}/historical/instruments/create"
     data = {"ticker": ticker, "name": name}
 
     response = requests.post(url, json=data).json()
@@ -29,13 +29,13 @@ def create_instruments(ticker: str, name: str) -> int:
 
 
 def delete_instruments(id: int) -> None:
-    url = f"{DATABASE_URL}/market_data/instruments/delete"
+    url = f"{DATABASE_URL}/historical/instruments/delete"
 
     _ = requests.delete(url, json=id).json()
 
 
 def create_records(binary_data: list):
-    url = f"{DATABASE_URL}/market_data/mbp/create"
+    url = f"{DATABASE_URL}/historical/mbp/create"
 
     _ = requests.post(url, json=binary_data)
 
@@ -43,21 +43,7 @@ def create_records(binary_data: list):
 class TestClientMethods(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.client = DatabaseClient(str(DATABASE_URL))
-
-    # @unittest.skip("")
-    def test_list_instruments(self):
-        # Setup
-        id = create_instruments("AAPL8", "Apple Inc.")
-
-        # Test
-        response = self.client.list_instruments()
-
-        # Validate
-        self.assertEqual(response["code"], 200)
-
-        # Cleanup
-        delete_instruments(id)
+        cls.client = DatabaseClient()
 
     # @unittest.skip("")
     def test_create_backtest(self):
@@ -66,14 +52,14 @@ class TestClientMethods(unittest.TestCase):
             data = json.load(f)
 
         # Test
-        response = self.client.create_backtest(data)
+        response = self.client.trading.create_backtest(data)
         id = response["data"]
 
         # Validate
         self.assertEqual(response["code"], 200)
 
         # Cleanup
-        self.client.delete_backtest(id)
+        self.client.trading.delete_backtest(id)
 
     # @unittest.skip("")
     def test_get_backtest(self):
@@ -82,17 +68,31 @@ class TestClientMethods(unittest.TestCase):
             data = json.load(f)
 
         # Create backtest
-        response = self.client.create_backtest(data)
+        response = self.client.trading.create_backtest(data)
         id = response["data"]
 
         # Test
-        response = self.client.get_backtest(id)
+        response = self.client.trading.get_backtest(id)
 
         # Validate
         self.assertEqual(response["code"], 200)
 
         # Cleanup
-        self.client.delete_backtest(id)
+        self.client.trading.delete_backtest(id)
+
+    # @unittest.skip("")
+    def test_list_instruments(self):
+        # Setup
+        id = create_instruments("AAPL8", "Apple Inc.")
+
+        # Test
+        response = self.client.historical.list_instruments()
+
+        # Validate
+        self.assertEqual(response["code"], 200)
+
+        # Cleanup
+        delete_instruments(id)
 
     def test_get_records(self):
         # Setup
@@ -119,7 +119,7 @@ class TestClientMethods(unittest.TestCase):
             "2024-11-30",
             "mbp-1",
         )
-        response = self.client.get_records(params)
+        response = self.client.historical.get_records(params)
 
         # Validate
         records = response.decode_to_array()
@@ -128,13 +128,59 @@ class TestClientMethods(unittest.TestCase):
         # Cleanup
         delete_instruments(id)
 
-    def test_read_file(self):
-        file_path = "tests/data/ohlcv_1m.bin"
+    def test_read_mbp_file(self):
+        file_path = "tests/data/mbp-1.bin"
+
         # Test
         data = BufferStore.from_file(file_path)
         df = data.decode_to_df(pretty_ts=True, pretty_px=False)
 
         # Validate
+        print(f"MBP: {df.head(5)}")
+        self.assertTrue(len(df) > 0)
+
+    def test_read_ohlcv_file(self):
+        file_path = "tests/data/ohlcv.bin"
+
+        # Test
+        data = BufferStore.from_file(file_path)
+        df = data.decode_to_df(pretty_ts=True, pretty_px=False)
+
+        # Validate
+        print(f"OHLCV: {df.head(5)}")
+        self.assertTrue(len(df) > 0)
+
+    def test_read_trades_file(self):
+        file_path = "tests/data/trade.bin"
+
+        # Test
+        data = BufferStore.from_file(file_path)
+        df = data.decode_to_df(pretty_ts=True, pretty_px=False)
+
+        # Validate
+        print(f"TRADES: {df.head(5)}")
+        self.assertTrue(len(df) > 0)
+
+    def test_read_tbbo_file(self):
+        file_path = "tests/data/tbbo.bin"
+
+        # Test
+        data = BufferStore.from_file(file_path)
+        df = data.decode_to_df(pretty_ts=True, pretty_px=False)
+
+        # Validate
+        print(f"TBBO: {df.head(5)}")
+        self.assertTrue(len(df) > 0)
+
+    def test_read_bbo_file(self):
+        file_path = "tests/data/bbo.bin"
+
+        # Test
+        data = BufferStore.from_file(file_path)
+        df = data.decode_to_df(pretty_ts=True, pretty_px=False)
+
+        # Validate
+        print(f"BBO: {df.head(5)}")
         self.assertTrue(len(df) > 0)
 
 
