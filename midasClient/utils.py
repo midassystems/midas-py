@@ -1,4 +1,14 @@
+import os
 from datetime import datetime, timezone
+
+
+def load_url(var: str) -> str:
+    url = os.getenv(var)
+
+    if url is None:
+        raise ValueError(f"{var} environment variable is not set.")
+
+    return url
 
 
 def iso_to_unix(timestamp_str: str):
@@ -21,7 +31,9 @@ def iso_to_unix(timestamp_str: str):
         dt = datetime.fromisoformat(timestamp_str)
     except ValueError:
         # If no timezone is specified, assume UTC
-        dt = datetime.fromisoformat(timestamp_str + "Z").replace(tzinfo=timezone.utc)
+        dt = datetime.fromisoformat(timestamp_str + "Z").replace(
+            tzinfo=timezone.utc
+        )
 
     # Convert to Unix timestamp (seconds since the epoch, with nanoseconds)
     unix_timestamp = int(dt.timestamp() * 1e9)
