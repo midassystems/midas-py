@@ -1,6 +1,7 @@
 import requests
 from typing import Dict
 from .utils import load_url
+from mbn import BacktestData
 
 
 class TradingClient:
@@ -12,7 +13,7 @@ class TradingClient:
 
     # self.api_key = api_key
 
-    def create_backtest(self, data: Dict):
+    def create_backtest(self, data: BacktestData):
         url = f"{self.api_url}/backtest/create"
 
         response = requests.post(url, json=data)
