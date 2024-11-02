@@ -42,18 +42,14 @@
       "equity_value": 10000,
       "percent_drawdown": 99,
       "cumulative_return": -9,
-      "period_return": 79,
-      "daily_strategy_return": "0.330",
-      "daily_benchmark_return": "0.00499"
+      "period_return": 79
     },
     {
       "timestamp": 1704904000,
       "equity_value": 100000,
       "percent_drawdown": 99,
       "cumulative_return": -9,
-      "period_return": 799,
-      "daily_strategy_return": "0.087",
-      "daily_benchmark_return": "0.009"
+      "period_return": 799
     }
   ],
   "daily_timeseries_stats": [
@@ -62,18 +58,14 @@
       "equity_value": 100000,
       "percent_drawdown": 99,
       "cumulative_return": -9,
-      "period_return": 799,
-      "daily_strategy_return": "0.330",
-      "daily_benchmark_return": "0.00499"
+      "period_return": 799
     },
     {
       "timestamp": 1704904000,
       "equity_value": 100000,
       "percent_drawdown": 99,
       "cumulative_return": -9,
-      "period_return": 799,
-      "daily_strategy_return": "0.087",
-      "daily_benchmark_return": "0.009"
+      "period_return": 799
     }
   ],
   "trades": [
