@@ -4,9 +4,6 @@ import requests
 from dotenv import load_dotenv
 from midasClient import DatabaseClient
 import json
-import struct
-from midasClient.historical import RetrieveParams
-from mbn import BufferStore
 import mbn
 
 # Load url
@@ -21,7 +18,16 @@ if DATABASE_URL is None:
 # Helper methods
 def create_instruments(ticker: str, name: str) -> int:
     url = f"{DATABASE_URL}/historical/instruments/create"
-    data = {"ticker": ticker, "name": name}
+    data = {
+        "ticker": ticker,
+        "name": name,
+        "vendor": "databento",
+        "stype": "continuous",
+        "dataset": "test",
+        "last_available": 1,
+        "first_available": 0,
+        "active": True,
+    }
 
     response = requests.post(url, json=data).json()
 
@@ -335,109 +341,6 @@ class TestClientMethods(unittest.TestCase):
 
         # Cleanup
         self.client.trading.delete_backtest(id)
-
-    # @unittest.skip("")
-    def test_list_instruments(self):
-        # Setup
-        id = create_instruments("AAPL8", "Apple Inc.")
-
-        # Test
-        response = self.client.historical.list_instruments()
-
-        # Validate
-        self.assertEqual(response["code"], 200)
-
-        # Cleanup
-        delete_instruments(id)
-
-    def test_get_records(self):
-        # Setup
-        id = create_instruments("AAPL", "Apple Inc.")
-        new_id_bytes = struct.pack("<I", id)
-
-        # Load binary records
-        with open("tests/data/test_data.records.json", "r") as f:
-            data = json.load(f)
-
-        # Replace instrument
-        #!!!! WILL FAIL IF NOT EXACTLY ALIGNED !!!!!
-        binary = data["data"]
-        binary[4:8] = new_id_bytes
-        # binary[60:64] = new_id_bytes
-
-        # Create records
-        create_records(binary)
-
-        # Test
-        params = RetrieveParams(
-            ["AAPL"],
-            "2023-11-01",
-            "2024-11-30",
-            "mbp-1",
-        )
-        response = self.client.historical.get_records(params)
-
-        # Validate
-        records = response.decode_to_array()
-        self.assertTrue(len(records) > 0)
-
-        # Cleanup
-        delete_instruments(id)
-
-    def test_read_mbp_file(self):
-        file_path = "tests/data/mbp-1.bin"
-
-        # Test
-        data = BufferStore.from_file(file_path)
-        df = data.decode_to_df(pretty_ts=True, pretty_px=False)
-
-        # Validate
-        print(f"MBP: {df.head(5)}")
-        self.assertTrue(len(df) > 0)
-
-    def test_read_ohlcv_file(self):
-        file_path = "tests/data/ohlcv.bin"
-
-        # Test
-        data = BufferStore.from_file(file_path)
-        df = data.decode_to_df(pretty_ts=True, pretty_px=False)
-
-        # Validate
-        print(f"OHLCV: {df.head(5)}")
-        self.assertTrue(len(df) > 0)
-
-    def test_read_trades_file(self):
-        file_path = "tests/data/trade.bin"
-
-        # Test
-        data = BufferStore.from_file(file_path)
-        df = data.decode_to_df(pretty_ts=True, pretty_px=False)
-
-        # Validate
-        print(f"TRADES: {df.head(5)}")
-        self.assertTrue(len(df) > 0)
-
-    def test_read_tbbo_file(self):
-        file_path = "tests/data/tbbo.bin"
-
-        # Test
-        data = BufferStore.from_file(file_path)
-        df = data.decode_to_df(pretty_ts=True, pretty_px=False)
-
-        # Validate
-        print(f"TBBO: {df.head(5)}")
-        self.assertTrue(len(df) > 0)
-
-    def test_read_bbo_file(self):
-        file_path = "tests/data/bbo.bin"
-
-        # Test
-        data = BufferStore.from_file(file_path)
-        df = data.decode_to_df(pretty_ts=True, pretty_px=False)
-
-        # Validate
-        print(f"BBO: {df.head(5)}")
-        self.assertTrue(len(df) > 0)
 
 
 if __name__ == "__main__":
