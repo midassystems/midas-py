@@ -2,6 +2,7 @@ import requests
 from typing import List
 from mbn import BufferStore
 from .utils import iso_to_unix, load_url
+import json
 
 
 class RetrieveParams:
@@ -41,23 +42,52 @@ class HistoricalClient:
             )
         return response.json()
 
+    def create_records(self, data: List[int]):
+        """
+        Stream loading main used for testing.
+        """
+
+        url = f"{self.api_url}/mbp/create"
+
+        response = requests.post(url, json=data, stream=True, timeout=30)
+
+        if response.status_code != 200:
+            raise ValueError(f"Error while creating records : {response.text}")
+
+        last_response = None  # Variable to store the last parsed JSON object
+
+        # Read the streamed content in chunks
+        for chunk in response.iter_content(chunk_size=None):
+            if chunk:  # filter out keep-alive chunks
+                try:
+                    chunk_data = json.loads(chunk.decode("utf-8"))
+                    last_response = chunk_data  # Keep updating with the latest parsed response
+                except json.JSONDecodeError as e:
+                    print(f"Failed to parse chunk as JSON: {e}")
+
+        # Return the last response
+        return last_response
+
     def get_records(self, params: RetrieveParams):
         url = f"{self.api_url}/mbp/get"
 
         data = params.to_dict()
-        response = requests.get(url, json=data, stream=True)
+        response = requests.get(url, json=data, stream=True, timeout=30)
 
         if response.status_code != 200:
             raise ValueError(
                 f"Instrument list retrieval failed: {response.text}"
             )
 
-        # Initialize an empty byte array to collect the streamed data
         bin_data = bytearray()
 
         # Read the streamed content in chunks
+
+        # Read the streamed content in chunks
         for chunk in response.iter_content(chunk_size=None):
-            if chunk:  # filter out keep-alive chunks
+            if chunk:  # filter out keep-alive or non-binary chunks
+                if b"Finished streaming all batches" in chunk:
+                    continue
                 bin_data.extend(chunk)
 
         return BufferStore(bytes(bin_data))
