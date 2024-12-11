@@ -74,3 +74,14 @@ class TradingClient:
                 f"Instrument list retrieval failed: {response.text}"
             )
         return response.json()
+
+    def get_backtest_by_name(self, name: str) -> Dict:
+        url = f"{self.api_url}/backtest/get?name={name}"
+
+        response = requests.get(url)  # json=id)
+
+        if response.status_code != 200:
+            raise ValueError(
+                f"Instrument list retrieval failed: {response.text}"
+            )
+        return response.json()

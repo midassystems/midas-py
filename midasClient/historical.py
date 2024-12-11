@@ -49,7 +49,7 @@ class HistoricalClient:
 
         url = f"{self.api_url}/mbp/create"
 
-        response = requests.post(url, json=data, stream=True, timeout=30)
+        response = requests.post(url, json=data, stream=True)
 
         if response.status_code != 200:
             raise ValueError(f"Error while creating records : {response.text}")
@@ -72,7 +72,7 @@ class HistoricalClient:
         url = f"{self.api_url}/mbp/get"
 
         data = params.to_dict()
-        response = requests.get(url, json=data, stream=True, timeout=30)
+        response = requests.get(url, json=data, stream=True)
 
         if response.status_code != 200:
             raise ValueError(
