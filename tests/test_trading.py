@@ -342,6 +342,22 @@ class TestClientMethods(unittest.TestCase):
         # Cleanup
         self.client.trading.delete_backtest(id)
 
+    # @unittest.skip("")
+    def test_get_backtest_by_name(self):
+        # # Setup
+        backtest = create_backtest()
+        response = self.client.trading.create_backtest(backtest)
+        id = response["data"]
+
+        # Test
+        response = self.client.trading.get_backtest_by_name("testing76543")
+
+        # Validate
+        self.assertEqual(response["code"], 200)
+
+        # Cleanup
+        self.client.trading.delete_backtest(id)
+
 
 if __name__ == "__main__":
     unittest.main()
