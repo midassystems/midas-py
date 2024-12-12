@@ -57,10 +57,8 @@ def create_backtest():
         capital=data["parameters"]["capital"],
         schema=data["parameters"]["schema"],
         data_type=data["parameters"]["data_type"],
-        train_start=data["parameters"]["train_start"],
-        train_end=data["parameters"]["train_end"],
-        test_start=data["parameters"]["test_start"],
-        test_end=data["parameters"]["test_end"],
+        start=data["parameters"]["start"],
+        end=data["parameters"]["end"],
         tickers=data["parameters"]["tickers"],
     )
 
@@ -187,10 +185,8 @@ def create_live():
         capital=data["parameters"]["capital"],
         schema=data["parameters"]["schema"],
         data_type=data["parameters"]["data_type"],
-        train_start=data["parameters"]["train_start"],
-        train_end=data["parameters"]["train_end"],
-        test_start=data["parameters"]["test_start"],
-        test_end=data["parameters"]["test_end"],
+        start=data["parameters"]["start"],
+        end=data["parameters"]["end"],
         tickers=data["parameters"]["tickers"],
     )
 
