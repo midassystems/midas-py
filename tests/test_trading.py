@@ -81,6 +81,7 @@ def create_backtest():
         beginning_equity=data["static_stats"]["beginning_equity"],
         ending_equity=data["static_stats"]["ending_equity"],
         total_return=data["static_stats"]["total_return"],
+        annualized_return=data["static_stats"]["annualized_return"],
         daily_standard_deviation_percentage=data["static_stats"][
             "daily_standard_deviation_percentage"
         ],
@@ -131,6 +132,7 @@ def create_backtest():
             quantity=trade["quantity"],
             avg_price=trade["avg_price"],
             trade_value=trade["trade_value"],
+            trade_cost=trade["trade_cost"],
             action=trade["action"],
             fees=trade["fees"],
         )
@@ -231,6 +233,7 @@ def create_live():
             quantity=trade["quantity"],
             avg_price=trade["avg_price"],
             trade_value=trade["trade_value"],
+            trade_cost=trade["trade_cost"],
             action=trade["action"],
             fees=trade["fees"],
         )
