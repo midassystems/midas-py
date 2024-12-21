@@ -165,11 +165,15 @@ def create_backtest():
         signals.append(signal)
 
     # Construct and return the BacktestData object
-    return mbn.BacktestData(
-        backtest_id=None,
+    metadata = mbn.BacktestMetaData(
+        backtest_id=0,
         backtest_name=data["backtest_name"],
         parameters=parameters,
         static_stats=static_stats,
+    )
+
+    return mbn.BacktestData(
+        metadata=metadata,
         period_timeseries_stats=period_timeseries_stats,
         daily_timeseries_stats=daily_timeseries_stats,
         trades=trades,
@@ -317,7 +321,7 @@ class TestClientMethods(unittest.TestCase):
 
         # Test
         response = self.client.trading.create_backtest(backtest)
-        id = response["data"]
+        id = int(response["data"])
 
         # Validate
         self.assertEqual(response["code"], 200)
@@ -330,7 +334,7 @@ class TestClientMethods(unittest.TestCase):
         # # Setup
         backtest = create_backtest()
         response = self.client.trading.create_backtest(backtest)
-        id = response["data"]
+        id = int(response["data"])
 
         # Test
         response = self.client.trading.get_backtest(id)
@@ -346,7 +350,7 @@ class TestClientMethods(unittest.TestCase):
         # # Setup
         backtest = create_backtest()
         response = self.client.trading.create_backtest(backtest)
-        id = response["data"]
+        id = int(response["data"])
 
         # Test
         response = self.client.trading.get_backtest_by_name("testing76543")

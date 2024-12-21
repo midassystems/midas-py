@@ -1,7 +1,8 @@
 import requests
 from typing import Dict
 from .utils import load_url
-from mbn import BacktestData, LiveData
+from mbn import BacktestData, LiveData, PyBacktestEncoder
+import json
 
 
 class TradingClient:
@@ -45,13 +46,27 @@ class TradingClient:
     def create_backtest(self, data: BacktestData):
         url = f"{self.api_url}/backtest/create"
 
-        response = requests.post(url, json=data.__dict__())
+        encoder = PyBacktestEncoder()
+        buffer = encoder.encode_backtest(data)
+
+        response = requests.post(url, json=buffer, stream=True)
 
         if response.status_code != 200:
-            raise ValueError(
-                f"Instrument list retrieval failed: {response.text}"
-            )
-        return response.json()
+            raise ValueError(f"Error while creating records : {response.text}")
+
+        last_response = None
+
+        # Read the streamed content in chunks
+        for chunk in response.iter_content(chunk_size=None):
+            if chunk:
+                try:
+                    chunk_data = json.loads(chunk.decode("utf-8"))
+                    last_response = chunk_data  # Keep updating with the latest parsed response
+                except json.JSONDecodeError as e:
+                    print(f"Failed to parse chunk as JSON: {e}")
+
+        # Return the last response
+        return last_response
 
     def delete_backtest(self, id: int) -> Dict:
         url = f"{self.api_url}/backtest/delete"
