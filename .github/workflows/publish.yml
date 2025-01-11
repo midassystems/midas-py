@@ -1,16 +1,14 @@
-name: Publish to PyPI
+name: Publish Pypi
 
 on:
-  workflow_dispatch:  # Manual trigger
-
-    inputs:
-      bump_type:
-        description: "Version bump type (patch, minor, major)"
-        required: true
-        default: "patch"  # Default to patch
+  workflow_run:
+    workflows: ['Bump-Version']
+    types: [completed]
+    branches:
+      - 'main'
 
 jobs:
-  build-and-publish:
+  publish_pypi:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,18 +23,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build twine bump2version
-          
-      - name: Increment version
-        run: |
-          bump2version patch --allow-dirty
-          git add pyproject.toml
-          git commit -m "Bump version to $(grep 'version =' pyproject.toml)"
+          pip install build twine
 
-      - name: Print updated version
-        run: |
-          grep "version = " pyproject.toml
-    
       - name: Build the package
         run: python -m build
 
@@ -46,8 +34,3 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: twine upload dist/*
 
-      - name: Push updated version to GitHub
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git push origin main --tags
