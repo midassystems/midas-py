@@ -29,8 +29,9 @@ jobs:
 
       - name: Increment version
         run: |
-          bump2version ${{ inputs.bump_type }} --allow-dirty  # Use the input to determine version bump type
-
+          CURRENT_VERSION=$(cat pyproject.toml | grep 'version =' | head -1 | awk -F'"' '{print $2}')
+          bump2version patch --current-version $CURRENT_VERSION --allow-dirty
+    
       - name: Build the package
         run: python -m build
 
