@@ -2,7 +2,7 @@ import unittest
 import os
 import requests
 from dotenv import load_dotenv
-from midasClient import DatabaseClient
+from midas_client import DatabaseClient
 import json
 import mbn
 

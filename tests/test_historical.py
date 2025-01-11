@@ -2,9 +2,9 @@ import unittest
 import os
 import requests
 from dotenv import load_dotenv
-from midasClient import DatabaseClient
+from midas_client import DatabaseClient
 import json
-from midasClient.historical import RetrieveParams
+from midas_client.historical import RetrieveParams
 from mbn import BufferStore
 import mbn
 
