@@ -26,11 +26,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install build twine bump2version
-
+          
       - name: Increment version
         run: |
-          CURRENT_VERSION=$(cat pyproject.toml | grep 'version =' | head -1 | awk -F'"' '{print $2}')
-          bump2version patch --current-version $CURRENT_VERSION --allow-dirty
+          bump2version patch --allow-dirty
+          git add pyproject.toml
+          git commit -m "Bump version to $(grep 'version =' pyproject.toml)"
+
+      - name: Print updated version
+        run: |
+          grep "version = " pyproject.toml
     
       - name: Build the package
         run: python -m build
