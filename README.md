@@ -1,5 +1,8 @@
 # Midas-py
 
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![pypi-version](https://img.shields.io/pypi/v/midas-client.svg)](https://pypi.org/project/midas-client/)
+
 A Python-based client library designed to interact with the `midas-server`, providing a streamlined interface for accessing data. Similar to its Rust counterpart (`midas-rs`), it leverages the `mbn` library for binary encoding, enabling both streaming data and saving it to binary MBN-encoded files.
 
 ## Features
@@ -8,22 +11,13 @@ A Python-based client library designed to interact with the `midas-server`, prov
 - **Save to File**: Save data to a binary MBN-encoded file for efficient storage and retrieval.
 - **Built on MBN**: Leverages the high-performance binary encoding capabilities of the `mbn` library.
 
-## Getting Started
+## Installation
 
-To install `midas-py`, you need to build it from source for now:
+You can install `midas-py` directly from [PyPI](https://pypi.org/project/midas-client/):
 
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/your-repo/midas-py.git
-   cd midas-py
-   ```
-
-2. Install the library:
-
-   ```bash
-   pip install .
-   ```
+```bash
+pip install midas-client
+```
 
 ## Documentation
 
@@ -35,4 +29,4 @@ Contributions are welcome! Feel free to open issues or submit pull requests to i
 
 ## License
 
-This project is licensed under the [Apache-2.0 License](LICENSE).
+Licensed under the [Apache-2.0 License](LICENSE).
