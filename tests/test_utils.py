@@ -1,5 +1,5 @@
 import unittest
-from midasClient.utils import iso_to_unix
+from midas_client.utils import iso_to_unix
 
 
 class TestClientMethods(unittest.TestCase):
