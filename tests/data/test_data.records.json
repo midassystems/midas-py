@@ -12,6 +12,7 @@
     "ts_in_delta": 0,
     "sequence": 5,
     "discriminator": 0,
+    "rollover_flag": 0,
     "levels": [
       {
         "bid_px": 1,
@@ -36,6 +37,7 @@
     "ts_in_delta": 0,
     "sequence": 5,
     "discriminator": 0,
+    "rollover_flag": 0,
     "levels": [
       {
         "bid_px": 1,

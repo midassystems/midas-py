@@ -1,33 +1,37 @@
-import unittest
 import os
+import mbn
+import json
+import unittest
 import requests
+from mbn import BufferStore
 from dotenv import load_dotenv
 from midas_client import DatabaseClient
-import json
 from midas_client.historical import RetrieveParams
-from mbn import BufferStore
-import mbn
 
 # Load url
 load_dotenv()
 
 DATABASE_URL = os.getenv("HISTORICAL_URL")
+INSTRUMENT_URL = os.getenv("INSTRUMENT_URL")
 
-if DATABASE_URL is None:
-    raise ValueError("HISTORICAL_URL environment variable is not set")
+if DATABASE_URL is None or INSTRUMENT_URL is None:
+    raise ValueError(
+        "HISTORICAL_URL or INSTRUMENT_URL environment variable is not set"
+    )
 
 
 # Helper methods
 def create_instruments(ticker: str, name: str) -> int:
-    url = f"{DATABASE_URL}/historical/instruments/create"
+    url = f"{INSTRUMENT_URL}/instruments/create"
     data = {
         "ticker": ticker,
         "name": name,
-        "vendor": "databento",
-        "stype": "continuous",
-        "dataset": "test",
-        "last_available": 1,
-        "first_available": 0,
+        "dataset": "Equities",
+        "vendor": "Databento",
+        "vendor_data": 12303838,
+        "last_available": 234565432,
+        "first_available": 234546762,
+        "expiration_date": 234565432,
         "active": True,
     }
 
@@ -38,9 +42,9 @@ def create_instruments(ticker: str, name: str) -> int:
 
 
 def delete_instruments(id: int) -> None:
-    url = f"{DATABASE_URL}/historical/instruments/delete"
+    url = f"{INSTRUMENT_URL}/instruments/delete"
 
-    _ = requests.delete(url, json=id).json()
+    _ = requests.delete(url, json=id)
 
 
 def json_to_mbp1msg(data):
@@ -57,13 +61,13 @@ def json_to_mbp1msg(data):
                 bid_ct=level["bid_ct"],
                 ask_ct=level["ask_ct"],
             )
-            for level in data.get(
-                "levels", []
-            )  # Default to empty list if no levels
+            for level in data.get("levels", [])
         ]
+
         return mbn.Mbp1Msg(
             instrument_id=data["instrument_id"],
             ts_event=data["ts_event"],
+            rollover_flag=data["rollover_flag"],
             price=data["price"],
             size=data["size"],
             action=mbn.Action.from_str(data["action"]),
@@ -74,7 +78,7 @@ def json_to_mbp1msg(data):
             ts_in_delta=data["ts_in_delta"],
             sequence=data["sequence"],
             discriminator=data["discriminator"],
-            levels=levels,  # Default to an empty list if not provided
+            levels=levels,
         )
     except KeyError as e:
         raise ValueError(f"Missing required field in JSON data: {e}")
@@ -85,6 +89,22 @@ def create_records(id: int, client: DatabaseClient) -> None:
     with open("tests/data/test_data.records.json", "r") as f:
         data = json.load(f)
 
+    # Test
+    bin = []
+    symbol_map = mbn.SymbolMap({})
+    metadata = mbn.Metadata(
+        mbn.Schema.MBP1,
+        mbn.Dataset.EQUITIES,
+        1234567654321,
+        987654345676543456,
+        symbol_map,
+    )
+
+    encoder = mbn.PyMetadataEncoder()
+    encoder.encode_metadata(metadata)
+    binary = encoder.get_encoded_data()
+    bin.extend(binary)
+
     msgs = []
     for i in range(0, len(data)):
         msg = json_to_mbp1msg(data[i])
@@ -94,29 +114,16 @@ def create_records(id: int, client: DatabaseClient) -> None:
     encoder = mbn.PyRecordEncoder()
     encoder.encode_records(msgs)
     binary = encoder.get_encoded_data()
+    bin.extend(binary)
 
     # Create records
-    client.historical.create_records(binary)
+    client.historical.create_records(bin)
 
 
 class TestClientMethods(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.client = DatabaseClient()
-
-    # @unittest.skip("")
-    def test_list_instruments(self):
-        # Setup
-        id = create_instruments("AAPL8", "Apple Inc.")
-
-        # Test
-        response = self.client.historical.list_instruments()
-
-        # Validate
-        self.assertEqual(response["code"], 200)
-
-        # Cleanup
-        delete_instruments(id)
 
     def test_get_records(self):
         # Setup
@@ -130,8 +137,11 @@ class TestClientMethods(unittest.TestCase):
             ["AAPL"],
             "2023-11-01",
             "2024-11-30",
-            "mbp-1",
+            mbn.Schema.MBP1,
+            mbn.Dataset.EQUITIES,
+            mbn.Stype.RAW,
         )
+
         response = self.client.historical.get_records(params)
 
         # Validate
@@ -153,7 +163,9 @@ class TestClientMethods(unittest.TestCase):
             ["AAPL"],
             "2023-11-01",
             "2024-11-30",
-            "mbp-1",
+            mbn.Schema.MBP1,
+            mbn.Dataset.EQUITIES,
+            mbn.Stype.RAW,
         )
         response = self.client.historical.get_records(params)
         response.write_to_file(file_path)
@@ -180,7 +192,9 @@ class TestClientMethods(unittest.TestCase):
             ["AAPL"],
             "2023-11-01",
             "2024-11-30",
-            "ohlcv-1d",
+            mbn.Schema.OHLCV1_D,
+            mbn.Dataset.EQUITIES,
+            mbn.Stype.RAW,
         )
         response = self.client.historical.get_records(params)
         response.write_to_file(file_path)
@@ -207,7 +221,9 @@ class TestClientMethods(unittest.TestCase):
             ["AAPL"],
             "2023-11-01",
             "2024-11-30",
-            "trade",
+            mbn.Schema.TRADES,
+            mbn.Dataset.EQUITIES,
+            mbn.Stype.RAW,
         )
         response = self.client.historical.get_records(params)
         response.write_to_file(file_path)
@@ -234,7 +250,9 @@ class TestClientMethods(unittest.TestCase):
             ["AAPL"],
             "2023-11-01",
             "2024-11-30",
-            "tbbo",
+            mbn.Schema.TBBO,
+            mbn.Dataset.EQUITIES,
+            mbn.Stype.RAW,
         )
         response = self.client.historical.get_records(params)
         response.write_to_file(file_path)
@@ -261,7 +279,9 @@ class TestClientMethods(unittest.TestCase):
             ["AAPL"],
             "2023-11-01",
             "2024-11-30",
-            "bbo-1m",
+            mbn.Schema.BBO1_M,
+            mbn.Dataset.EQUITIES,
+            mbn.Stype.RAW,
         )
         response = self.client.historical.get_records(params)
         response.write_to_file(file_path)
